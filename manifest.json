@@ -1,0 +1,17 @@
+{
+	"name": "RTAddAssetByName",
+	"version": "1.0",
+	"description": "Allow adding of assets by name on Request Tracker",
+	"permissions": [
+		"activeTab"
+	],
+	"content_scripts": [
+		{
+			"matches": [ "*://*/Ticket/Display.html*" ],
+			"run_at": "document_idle",
+			"css": [ "style.css" ],
+			"js": [ "contentscript.js" ]
+		}
+	],
+	"manifest_version": 2
+}

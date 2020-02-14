@@ -1,0 +1,37 @@
+div#add-asset-by-name-button {
+	border-radius: 3px;
+	padding-left: 0.75em;
+	padding-right: 0.75em;
+	color: #fff;
+	background-color: #4868b3;
+	border: 1px solid #fff;
+	padding: 0.5em;
+	font-size: 1.0em;
+	-webkit-appearance: push-button;
+	user-select: none;
+	white-space: pre;
+	align-items: flex-start;
+	text-align: center;
+	cursor: default;
+	box-sizing: border-box;
+	-webkit-writing-mode: horizontal-tb !important;
+	text-rendering: auto;
+	letter-spacing: normal;
+	word-spacing: normal;
+	text-transform: none;
+	text-indent: 0px;
+	text-shadow: none;
+	display: inline-block;
+	-webkit-rtl-ordering: logical;
+	margin: 0em;
+	font: 400 13.3333px Arial;
+	width: 30px
+	height: 30px;
+	padding: 6.5px 9.75px;
+}
+div#add-asset-by-name-button:hover {
+	background-color: #1D3B7D;
+}
+input#add-asset-by-name-input.failed {
+	background-color: #FFCCCC;
+}
