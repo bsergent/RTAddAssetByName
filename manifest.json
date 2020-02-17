@@ -9,8 +9,8 @@
 		{
 			"matches": [ "*://*/Ticket/Display.html*" ],
 			"run_at": "document_idle",
-			"css": [ "style.css" ],
-			"js": [ "contentscript.js" ]
+			"css": [ "assets/style.css" ],
+			"js": [ "src/contentscript.js" ]
 		}
 	],
 	"manifest_version": 2
