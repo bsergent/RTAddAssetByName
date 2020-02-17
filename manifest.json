@@ -1,6 +1,6 @@
 {
 	"name": "RTAddAssetByName",
-	"version": "1.0",
+	"version": "1.0.1",
 	"description": "Allow adding of assets by name on Request Tracker",
 	"permissions": [
 		"activeTab"
@@ -9,9 +9,20 @@
 		{
 			"matches": [ "*://*/Ticket/Display.html*" ],
 			"run_at": "document_idle",
-			"css": [ "style.css" ],
-			"js": [ "contentscript.js" ]
+			"css": [ "assets/style.css" ],
+			"js": [ "src/contentscript.js" ]
 		}
 	],
+	"browser_action": {
+		"default_icon": {
+			"19": "assets/logo19.png",
+			"38": "assets/logo38.png"
+		}
+	},
+	"icons": {
+		"16": "assets/logo16.png",
+		"48": "assets/logo48.png",
+		"128": "assets/logo128.png"
+	},
 	"manifest_version": 2
 }
