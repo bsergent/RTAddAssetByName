@@ -59,7 +59,7 @@
 		}
 
 		console.log('Looking up asset name...');
-		let query = `https://rt.eecs.utk.edu/Asset/Search/Results.html?Format=%27__Name__%27%2C%27__id__%27&OrderBy=Name%7C%7C%7C&Query=Name%20LIKE%20%27${com}%27&Type=Asset`;
+		let query = `${window.location.origin}/Asset/Search/Results.html?Format=%27__Name__%27%2C%27__id__%27&OrderBy=Name%7C%7C%7C&Query=Name%20LIKE%20%27${com}%27&Type=Asset`;
 		let req = new XMLHttpRequest();
 		req.onreadystatechange = () => {
 			if (req.readyState === 4 && req.status === 200) {
