@@ -66,6 +66,11 @@
 
 	function search(com) {
 		return new Promise((resolve, reject) => {
+			if (com === '') {
+				resolve()
+				return;
+			}
+
 			let query = `${window.location.origin}/Asset/Search/Results.html?Format=%27__Name__%27%2C%27__id__%27&OrderBy=Name%7C%7C%7C&Query=Name%20LIKE%20%27${com}%27&Type=Asset`;
 			let req = new XMLHttpRequest();
 			req.onload = () => {
