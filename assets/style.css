@@ -35,3 +35,24 @@ div#add-asset-by-name-button:hover {
 input#add-asset-by-name-input.failed {
 	background-color: #FFCCCC;
 }
+input#add-asset-by-name-input.succeeded {
+	background-color: #CCFFCC;
+}
+input#add-asset-by-name-input.working {
+	background-color: #CCCCFF;
+	animation-name: workingpulse;
+	animation-duration: 1s;
+	animation-iteration-count: infinite;
+}
+
+@keyframes workingpulse {
+	0% {
+		background-color: #FFFFFF;
+	}
+	50% {
+		background-color: #CCCCFF;
+	}
+	100% {
+		background-color: #FFFFFF;
+	}
+}

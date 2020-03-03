@@ -41,6 +41,7 @@
 	asset_name_input.type = 'text';
 	asset_name_input.addEventListener('keyup', event => {
 		asset_name_input.classList.remove('failed');
+		asset_name_input.classList.remove('succeeded');
 	});
 	label.appendChild(document.createTextNode(' or '));
 	label.appendChild(asset_name_input);
@@ -51,54 +52,90 @@
 	btn.id = 'add-asset-by-name-button';
 	btn.innerHTML = '+';	
 
+	// Parse string of names into array
+	function parseNames(str) {
+		let names = [];
+		if (str.indexOf(',') !== -1)
+			for (let name of str.split(','))
+				names.push(name.trim());
+		else
+			for (let name of str.split(' '))
+				names.push(name.trim());
+		return names;
+	}
+
+	function search(com) {
+		return new Promise((resolve, reject) => {
+			let query = `${window.location.origin}/Asset/Search/Results.html?Format=%27__Name__%27%2C%27__id__%27&OrderBy=Name%7C%7C%7C&Query=Name%20LIKE%20%27${com}%27&Type=Asset`;
+			let req = new XMLHttpRequest();
+			req.onload = () => {
+				if (req.readyState === 4 && req.status === 200) {
+					let id = -1;
+
+					// Parse HTML response
+					let resp = document.createElement('html');
+					resp.innerHTML = req.responseText;
+					try {
+						let table = resp.getElementsByTagName('table')[0];
+						let tbody = table.getElementsByTagName('tbody')[1];
+						let td = tbody.getElementsByTagName('td')[1];
+						id = parseInt(td.innerText);
+					} catch (ex) {}
+					
+					// Set asset id field and submit
+					if (id === -1) {
+						console.error('Failed to look up asset name.', req);		
+						asset_name_input.classList.remove('working');
+						asset_name_input.classList.add('failed');
+						reject('Failed to look up asset name.');
+						return;
+					}
+					console.log(`Asset id for ${com} is ${id}.`);
+					asset_id_input.value = (asset_id_input.value + ` asset:${id}`).trim();
+					resolve(id);
+					//form.submit();
+				}
+			}
+			req.onerror = () => {
+				asset_name_input.classList.remove('working');
+				asset_name_input.classList.add('failed');
+				reject(req.statusText);
+				return;
+			}
+			req.open('GET', query);
+			req.send(null);
+		});
+	}
+
 	// Look up asset name
-	function lookup(com) {
-		if (com === '') {
+	function lookup(str) {
+		if (str === '') {
 			form.submit();
 			return;
 		}
 
-		console.log('Looking up asset name...');
-		let query = `${window.location.origin}/Asset/Search/Results.html?Format=%27__Name__%27%2C%27__id__%27&OrderBy=Name%7C%7C%7C&Query=Name%20LIKE%20%27${com}%27&Type=Asset`;
-		let req = new XMLHttpRequest();
-		req.onreadystatechange = () => {
-			if (req.readyState === 4 && req.status === 200) {
-				let id = -1;
-
-				// Parse HTML response
-				let resp = document.createElement('html');
-				resp.innerHTML = req.responseText;
-				try {
-					let table = resp.getElementsByTagName('table')[0];
-					let tbody = table.getElementsByTagName('tbody')[1];
-					let td = tbody.getElementsByTagName('td')[1];
-					id = parseInt(td.innerText);
-				} catch (ex) {}
-				
-				// Set asset id field and submit
-				if (id === -1) {
-					console.error('Failed to look up asset name.', req);		
-					asset_name_input.classList.add('failed');
-					return;
-				}
-				console.log(`Asset id for ${com} is ${id}.`);
-				asset_id_input.value = `asset:${id}`;
-				form.submit();
-			}
-		}
-		req.open('GET', query, true);
-		req.send(null);
-		
+		console.log('Looking up asset id(s) by name...');
+		asset_name_input.classList.add('working');
+		let searches = [];
+		for (let name of parseNames(str))
+			searches.push(search(name));
+		Promise.all(searches).then((values) => {
+			console.log('Submitting form with the following ids:');
+			console.log(values);
+			asset_name_input.classList.remove('working');
+			asset_name_input.classList.add('succeeded');
+			form.submit();
+		});
 	}
 
 	// Add listeners
 	form.addEventListener('submit', event => {
 		event.preventDefault();
-		lookup(asset_name_input.value);
+		lookup(asset_name_input.value)
 	});
 	btn.addEventListener('click', event => {
 		event.preventDefault();
-		lookup(asset_name_input.value);
+		lookup(asset_name_input.value)
 	});
 
 })();
