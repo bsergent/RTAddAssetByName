@@ -32,6 +32,25 @@
 		return;
 	}
 
+	// Compile list of attached assets
+	let attached_assets = compileAttachedAssetsList();
+	console.log('Attached Assets:', attached_assets);
+	// Underline unquoted asset names in comments & correspondence
+	//  Maybe just create a link to their entry?
+	//  On hover, do a search to see if the asset actually exists,
+	//   then highlight in green or red (blue before that)
+	// This would normally require checking all assets, so maybe just
+	//  write some regex for the basic ones? (COM, LAP, COE, MK)
+	// List include but not attached tickets in Links section
+	// Option to attach assets mentioned in comment/corresp. update?
+	
+	// Find assets mentioned in ticket comments/correspondence
+	let messages = document.getElementsByClass('messagebody');
+	const asset_name_regex = /[A-Za-z]+[0-9]+/g;
+	for (let msg of messages) {
+		
+	}
+
 	// Update html
 	// Add asset name field
 	let asset_name_input = document.createElement('input');
@@ -131,6 +150,27 @@
 			asset_name_input.classList.add('succeeded');
 			form.submit();
 		});
+	}
+
+	// Parse "Links" for attached assets
+	// Returns list of { id: number, name: string }
+	function compileAttachedAssetsList() {
+		let assets = [];
+		//let div_add_asset = document.getElementsByClassName('add-asset')[0];
+		//let label = div_add_asset.getElementsByTagName('label')[0];
+		//let inputs = div_add_asset.getElementsByTagName('input');
+		let div_ticket_info_links = document.getElementsByClassName('ticket-info-links')[0];
+		let tr_refers_to = div_ticket_info_links.getElementsByClassName('RefersTo')[0];
+		let unordered_list = tr_refers_to.getElementsByTagName('li');
+		for (let li of unordered_list) {
+			let str_arr = li.getElementsByTagName('a')[0].text.split(':');
+			// Assumed string format: "Asset #[0-9]+: .*"
+			let asset = { id: -1, name: '' };
+			asset.id = parseInt(str_arr[0].substring(7));
+			asset.name = str_arr[1].trim();
+			assets.push(asset);
+		}
+		return assets;
 	}
 
 	// Add listeners
