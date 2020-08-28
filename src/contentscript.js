@@ -44,12 +44,20 @@
 	// List include but not attached tickets in Links section
 	// Option to attach assets mentioned in comment/corresp. update?
 	
-	// Find assets mentioned in ticket comments/correspondence
-	let messages = document.getElementsByClass('messagebody');
-	const asset_name_regex = /[A-Za-z]+[0-9]+/g;
-	for (let msg of messages) {
-		
-	}
+	// Wait for history to load
+	let hist = document.getElementById('delayed_ticket_history');
+	let hist_check = setInterval(() => {
+		// Check if history loaded
+		// (Janky workaround, but no access to xhr request)
+		if (hist.getElementsByClassName('history-container').length <= 0)
+			return;
+		console.log('History loaded.');
+		try {
+			let referenced_asset_names = findAssetsInHistory(hist);
+			console.log(referenced_asset_names);
+		} catch (ex) { console.error('Failed to parse assets referenced in history.', ex); }
+		clearInterval(hist_check);
+	}, 500);
 
 	// Update html
 	// Add asset name field
@@ -171,6 +179,47 @@
 			assets.push(asset);
 		}
 		return assets;
+	}
+
+	// Find all matches for /[A-Za-z]+[0-9]+/g in history
+	// Make them into links to asset pages
+	// Return list of asset names
+	function findAssetsInHistory(hist_elem) {
+		let asset_names = [];
+
+		// Find assets mentioned in ticket comments/correspondence
+		let messages = hist_elem.getElementsByClassName('messagebody');
+		console.log(`Found ${messages.length} messages.`);
+		for (let msg of messages) {
+			console.log('Parsing message...');
+			let prev_count = asset_names.length;
+			referenceAsset(msg, asset_names);
+			console.log(`Found ${asset_names.length - prev_count} asset(s).`);
+			console.log(asset_names.slice(prev_count-1));
+		}
+		// TODO Could also use TreeWalker instead to possibly be faster
+		
+		return asset_names;
+	}
+	
+	// Recursively replace matching text w/ links
+	const ASSET_NAME_REGEX = /\b([A-Za-z]{2,4}[0-9]+)\b/g;
+	const NODE_TYPE_TEXT = 3;
+	function referenceAsset(node, asset_names) {
+		if (node.nodeType === NODE_TYPE_TEXT) {
+			//node.nodeValue.replace(ASSET_NAME_REGEX, '<a href="">$&</a>');
+			console.log(node.innerHTML);
+			node.nodeValue = node.nodeValue
+				.replace(ASSET_NAME_REGEX, (match, p, offset) => {
+				// TODO TEXT nodes cannot have child elements
+				// TODO Have to look up ids for the links...
+				asset_names.push(match);
+				return `<a href="">${match}</a>`;
+			});
+		} else {
+			for (let child of node.childNodes)
+				referenceAsset(child, asset_names);
+		}
 	}
 
 	// Add listeners
