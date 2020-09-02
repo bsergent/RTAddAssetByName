@@ -51,10 +51,10 @@
 		// (Janky workaround, but no access to xhr request)
 		if (hist.getElementsByClassName('history-container').length <= 0)
 			return;
-		console.log('History loaded.');
+		//console.log('History loaded.');
 		try {
 			let referenced_asset_names = findAssetsInHistory(hist);
-			console.log(referenced_asset_names);
+			console.log('Referenced Assets:', referenced_asset_names);
 		} catch (ex) { console.error('Failed to parse assets referenced in history.', ex); }
 		clearInterval(hist_check);
 	}, 500);
@@ -94,7 +94,7 @@
 	function search(com) {
 		return new Promise((resolve, reject) => {
 			if (com === '') {
-				resolve()
+				resolve();
 				return;
 			}
 
@@ -189,13 +189,14 @@
 
 		// Find assets mentioned in ticket comments/correspondence
 		let messages = hist_elem.getElementsByClassName('messagebody');
-		console.log(`Found ${messages.length} messages.`);
+		//console.log(`Found ${messages.length} messages.`);
 		for (let msg of messages) {
-			console.log('Parsing message...');
-			let prev_count = asset_names.length;
+			//console.log(`Parsing message ${msg.parentNode.parentNode.getAttribute('data-transaction-id')}...`);
+			//let prev_count = asset_names.length;
 			referenceAsset(msg, asset_names);
-			console.log(`Found ${asset_names.length - prev_count} asset(s).`);
-			console.log(asset_names.slice(prev_count-1));
+			//let found_count = asset_names.length - prev_count;
+			//console.log(`Found ${found_count} asset(s).`);
+			//console.log(asset_names.slice(prev_count));
 		}
 		// TODO Could also use TreeWalker instead to possibly be faster
 		
@@ -203,22 +204,40 @@
 	}
 	
 	// Recursively replace matching text w/ links
-	const ASSET_NAME_REGEX = /\b([A-Za-z]{2,4}[0-9]+)\b/g;
+	const ASSET_NAME_REGEX = /\b([A-Za-z]{2,7}[0-9]+)\b/g;
 	const NODE_TYPE_TEXT = 3;
+	const NODE_TYPE_ELEM = 1;
 	function referenceAsset(node, asset_names) {
 		if (node.nodeType === NODE_TYPE_TEXT) {
-			//node.nodeValue.replace(ASSET_NAME_REGEX, '<a href="">$&</a>');
-			console.log(node.innerHTML);
-			node.nodeValue = node.nodeValue
-				.replace(ASSET_NAME_REGEX, (match, p, offset) => {
-				// TODO TEXT nodes cannot have child elements
-				// TODO Have to look up ids for the links...
-				asset_names.push(match);
-				return `<a href="">${match}</a>`;
-			});
+			// Check if node contains match
+			if (!node.nodeValue.match(ASSET_NAME_REGEX))
+				return;
+			// Insert anchor around matched strings in TEXT node
+			let span = document.createElement('span');
+			node.parentNode.insertBefore(span, node);
+			span.insertAdjacentHTML('beforebegin', node.nodeValue
+				// Create element w/ links
+				.replace(ASSET_NAME_REGEX, (match) => {
+					asset_names.push(match);
+					//let id = search(match); // <- promise, not number, affects input boxes
+					// TODO Make search run synchronously or make more threads
+					//      to replace links as they resolve.
+					// TODO Make search not affect other classes and such
+					// Or, just link to the asset search page
+					return `<a href="/Asset/Search/Results.html?Query=Name%20Like%20%27${match}%27" class="asset_ref">${match}</a>`;
+					//return `<a href="/Asset/Display.html?id=${id}" class="asset_ref">${match}</a>`;
+				}));
+			span.remove();
+			node.remove();
+			//console.log('Inserted link');
 		} else {
-			for (let child of node.childNodes)
+			for (let child of node.childNodes) {
+				// Don't recurse if child has class 'asset_ref'
+				if (child.nodeType === NODE_TYPE_ELEM && child.classList.contains('asset_ref'))
+					continue;
+				// Recurse into children
 				referenceAsset(child, asset_names);
+			}
 		}
 	}
 
