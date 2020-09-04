@@ -81,8 +81,8 @@
 		//console.log('History loaded.');
 		try {
 			let referenced_asset_names = findAssetsInHistory(hist);
-			referenced_asset_names = referenced_asset_names
-				.concat(findAssetsInHeader());
+			referenced_asset_names = findAssetsInHeader()
+				.concat(referenced_asset_names);
 			let recommended_assets = [];
 			for (let referenced_name of referenced_asset_names) {
 				let alreadyAttached = false;
