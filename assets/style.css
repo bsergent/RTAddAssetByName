@@ -45,6 +45,30 @@ input#add-asset-by-name-input.working {
 	animation-iteration-count: infinite;
 }
 
+div.add-asset div.recommended {
+	text-align: left;
+}
+div.add-asset div.recommended ul {
+	display: inline;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+div.add-asset div.recommended ul > li {
+	display: inline;
+}
+div.add-asset div.recommended ul > li:not(:last-child)::after {
+	content: ', '
+}
+div.add-asset div.recommended ul > li a.added {
+	color: #55AA55;
+	transition: color 0.1s ease;
+}
+
+a.asset-ref {
+	cursor: pointer;
+}
+
 @keyframes workingpulse {
 	0% {
 		background-color: #FFFFFF;

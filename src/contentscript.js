@@ -44,21 +44,6 @@
 	// List include but not attached tickets in Links section
 	// Option to attach assets mentioned in comment/corresp. update?
 	
-	// Wait for history to load
-	let hist = document.getElementById('delayed_ticket_history');
-	let hist_check = setInterval(() => {
-		// Check if history loaded
-		// (Janky workaround, but no access to xhr request)
-		if (hist.getElementsByClassName('history-container').length <= 0)
-			return;
-		//console.log('History loaded.');
-		try {
-			let referenced_asset_names = findAssetsInHistory(hist);
-			console.log('Referenced Assets:', referenced_asset_names);
-		} catch (ex) { console.error('Failed to parse assets referenced in history.', ex); }
-		clearInterval(hist_check);
-	}, 500);
-
 	// Update html
 	// Add asset name field
 	let asset_name_input = document.createElement('input');
@@ -78,6 +63,60 @@
 	div_add_asset.appendChild(btn);
 	btn.id = 'add-asset-by-name-button';
 	btn.innerHTML = '+';	
+	
+	// Add empty Referenced Assets section
+	let div_ref_asset = document.createElement('div');
+	div_ref_asset.classList.add('recommended');
+	div_ref_asset.innerHTML = 'Recommended Assets: ';
+	let ul_ref_asset = document.createElement('ul');
+	div_ref_asset.appendChild(ul_ref_asset);
+
+	// Wait for history to load
+	let hist = document.getElementById('delayed_ticket_history');
+	let hist_check = setInterval(() => {
+		// Check if history loaded
+		// (Janky workaround, but no access to xhr request)
+		if (hist.getElementsByClassName('history-container').length <= 0)
+			return;
+		//console.log('History loaded.');
+		try {
+			let referenced_asset_names = findAssetsInHistory(hist);
+			let recommended_assets = [];
+			for (let referenced_name of referenced_asset_names) {
+				let alreadyAttached = false;
+				for (let attached_name of attached_assets.map(a => a.name)) {
+					if (attached_name.trim() === referenced_name.trim())
+						alreadyAttached = true;
+				}
+				for (let recommended_name of recommended_assets) {
+					if (recommended_name.trim() === referenced_name.trim())
+						alreadyAttached = true;
+				}
+				if (alreadyAttached) continue;
+				recommended_assets.push(referenced_name);
+				let li = document.createElement('li');
+				let link = document.createElement('a');
+				link.innerHTML = referenced_name;
+				link.classList.add('asset-ref');
+				// TODO Figure out how to correctly listen for clicks
+				link.addEventListener('click', () => {
+					// TODO Add asset name to input field
+					//console.log(`Prep ${referenced_name} for linking`);
+					if (asset_name_input.value.trim() === '')
+						asset_name_input.value = referenced_name;
+					else
+						asset_name_input.value += ', ' + referenced_name;
+					link.classList.add('added');
+				});
+				li.appendChild(link);
+				ul_ref_asset.appendChild(li);
+			}
+			console.log('Referenced Assets: ', referenced_asset_names);
+			if (recommended_assets.length > 0)
+				div_add_asset.appendChild(div_ref_asset);
+		} catch (ex) { console.error('Failed to parse assets referenced in history.', ex); }
+		clearInterval(hist_check);
+	}, 500);
 
 	// Parse string of names into array
 	function parseNames(str) {
@@ -189,22 +228,19 @@
 
 		// Find assets mentioned in ticket comments/correspondence
 		let messages = hist_elem.getElementsByClassName('messagebody');
-		//console.log(`Found ${messages.length} messages.`);
-		for (let msg of messages) {
-			//console.log(`Parsing message ${msg.parentNode.parentNode.getAttribute('data-transaction-id')}...`);
-			//let prev_count = asset_names.length;
+		for (let msg of messages)
 			referenceAsset(msg, asset_names);
-			//let found_count = asset_names.length - prev_count;
-			//console.log(`Found ${found_count} asset(s).`);
-			//console.log(asset_names.slice(prev_count));
-		}
-		// TODO Could also use TreeWalker instead to possibly be faster
 		
 		return asset_names;
 	}
 	
 	// Recursively replace matching text w/ links
-	const ASSET_NAME_REGEX = /\b([A-Za-z]{2,7}[0-9]+)\b/g;
+	// COM,STAFF,FNET,LAP,COEDEAN,MK,HYDRA,TESLA,DA,PowerIT2
+	//  => otherwise netids so point to directory.utk.edu
+	//  => include those if lowercase but all uppercase
+	// Links for ticket numbers as well?
+	//const ASSET_NAME_REGEX = /\b([A-Za-z]{2,7}[0-9]+)\b/g;
+	const ASSET_NAME_REGEX =/\b(((COM)|(LAP)|(FNET)|(COEDEAN)|(MK)|(HYDRA)|(TESLA)|(DA)|(POWERIT)) ?[0-9]+)\b/g;
 	const NODE_TYPE_TEXT = 3;
 	const NODE_TYPE_ELEM = 1;
 	function referenceAsset(node, asset_names) {
@@ -219,21 +255,14 @@
 				// Create element w/ links
 				.replace(ASSET_NAME_REGEX, (match) => {
 					asset_names.push(match);
-					//let id = search(match); // <- promise, not number, affects input boxes
-					// TODO Make search run synchronously or make more threads
-					//      to replace links as they resolve.
-					// TODO Make search not affect other classes and such
-					// Or, just link to the asset search page
-					return `<a href="/Asset/Search/Results.html?Query=Name%20Like%20%27${match}%27" class="asset_ref">${match}</a>`;
-					//return `<a href="/Asset/Display.html?id=${id}" class="asset_ref">${match}</a>`;
+					return `<a href="/Asset/Search/Results.html?Query=Name%20Like%20%27${match}%27" class="asset-ref">${match}</a>`;
 				}));
 			span.remove();
 			node.remove();
-			//console.log('Inserted link');
 		} else {
 			for (let child of node.childNodes) {
-				// Don't recurse if child has class 'asset_ref'
-				if (child.nodeType === NODE_TYPE_ELEM && child.classList.contains('asset_ref'))
+				// Don't recurse if child has class 'asset-ref'
+				if (child.nodeType === NODE_TYPE_ELEM && child.classList.contains('asset-ref'))
 					continue;
 				// Recurse into children
 				referenceAsset(child, asset_names);
