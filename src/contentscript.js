@@ -81,6 +81,8 @@
 		//console.log('History loaded.');
 		try {
 			let referenced_asset_names = findAssetsInHistory(hist);
+			referenced_asset_names = referenced_asset_names
+				.concat(findAssetsInHeader());
 			let recommended_assets = [];
 			for (let referenced_name of referenced_asset_names) {
 				let alreadyAttached = false;
@@ -233,9 +235,24 @@
 		
 		return asset_names;
 	}
+
+	// Return list of asset names referenced in header
+	function findAssetsInHeader() {
+		try {
+			let asset_names = document.getElementById('header')
+				.getElementsByTagName('h1')[0]
+				.textContent.match(ASSET_NAME_REGEX);
+			if (asset_names === null)
+				asset_names = [];
+			return asset_names;
+		} catch (ex) {
+			console.log('Could not parse header for referenced assets', ex);
+			return [];
+		}
+	}
 	
 	// Recursively replace matching text w/ links
-	// COM,STAFF,FNET,LAP,COEDEAN,MK,HYDRA,TESLA,DA,PowerIT2
+	// COM,STAFF,FNET,LAP,COEDEAN,MK,HYDRA,TESLA,DA,POWERIT
 	//  => otherwise netids so point to directory.utk.edu
 	//  => include those if lowercase but all uppercase
 	// Links for ticket numbers as well?
