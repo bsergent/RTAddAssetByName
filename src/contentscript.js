@@ -245,6 +245,9 @@
 				.textContent.match(ASSET_NAME_REGEX);
 			if (asset_names === null)
 				asset_names = [];
+			// Remove whitespace in names
+			for (let n = 0; n < asset_names.length; n++)
+				asset_names[n] = asset_names[n].replace(/\s+/g, '');
 			return asset_names;
 		} catch (ex) {
 			console.log('Could not parse header for referenced assets', ex);
@@ -272,15 +275,9 @@
 			span.insertAdjacentHTML('beforebegin', node.nodeValue
 				// Create element w/ links
 				.replace(ASSET_NAME_REGEX, (match) => {
+					match = match.replace(/\s+/g, ''); // Remove whitespace
 					asset_names.push(match);
 					return `<a class="asset-ref">${match}</a>`;
-					/*link.addEventListener('click', () => {
-						if (asset_name_input.value.trim() === '')
-							asset_name_input.value = referenced_name;
-						else
-							asset_name_input.value += ', ' + referenced_name;
-						link.classList.add('added');
-					});*/
 				}));
 			for (let child of node.parentNode.childNodes) {
 				if (child.nodeType !== NODE_TYPE_ELEM || !child.classList.contains('asset-ref'))
