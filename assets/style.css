@@ -68,6 +68,19 @@ div.add-asset div.recommended ul > li a.added {
 a.asset-ref {
 	cursor: pointer;
 }
+a.asset-ref.failed {
+	color: #AA5555;
+}
+a.asset-ref.succeeded {
+	color: #55AA55;
+}
+a.asset-ref.working {
+	color: #5555AA;
+	text-decoration: underline;
+	animation-name: workingpulsetext;
+	animation-duration: 1s;
+	animation-iteration-count: infinite;
+}
 
 @keyframes workingpulse {
 	0% {
@@ -78,5 +91,16 @@ a.asset-ref {
 	}
 	100% {
 		background-color: #FFFFFF;
+	}
+}
+@keyframes workingpulsetext {
+	0% {
+		color: #000000;
+	}
+	50% {
+		color: #5555AA;
+	}
+	100% {
+		color: #000000;
 	}
 }

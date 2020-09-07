@@ -100,10 +100,7 @@
 				let link = document.createElement('a');
 				link.innerHTML = referenced_name;
 				link.classList.add('asset-ref');
-				// TODO Figure out how to correctly listen for clicks
 				link.addEventListener('click', () => {
-					// TODO Add asset name to input field
-					//console.log(`Prep ${referenced_name} for linking`);
 					if (asset_name_input.value.trim() === '')
 						asset_name_input.value = referenced_name;
 					else
@@ -132,54 +129,6 @@
 		return names;
 	}
 
-	function search(com) {
-		return new Promise((resolve, reject) => {
-			if (com === '') {
-				resolve();
-				return;
-			}
-
-			let query = `${window.location.origin}/Asset/Search/Results.html?Format=%27__Name__%27%2C%27__id__%27&OrderBy=Name%7C%7C%7C&Query=Name%20LIKE%20%27${com}%27&Type=Asset`;
-			let req = new XMLHttpRequest();
-			req.onload = () => {
-				if (req.readyState === 4 && req.status === 200) {
-					let id = -1;
-
-					// Parse HTML response
-					let resp = document.createElement('html');
-					resp.innerHTML = req.responseText;
-					try {
-						let table = resp.getElementsByTagName('table')[0];
-						let tbody = table.getElementsByTagName('tbody')[1];
-						let td = tbody.getElementsByTagName('td')[1];
-						id = parseInt(td.innerText);
-					} catch (ex) {}
-					
-					// Set asset id field and submit
-					if (id === -1) {
-						console.error('Failed to look up asset name.', req);		
-						asset_name_input.classList.remove('working');
-						asset_name_input.classList.add('failed');
-						reject('Failed to look up asset name.');
-						return;
-					}
-					console.log(`Asset id for ${com} is ${id}.`);
-					asset_id_input.value = (asset_id_input.value + ` asset:${id}`).trim();
-					resolve(id);
-					//form.submit();
-				}
-			}
-			req.onerror = () => {
-				asset_name_input.classList.remove('working');
-				asset_name_input.classList.add('failed');
-				reject(req.statusText);
-				return;
-			}
-			req.open('GET', query);
-			req.send(null);
-		});
-	}
-
 	// Look up asset name
 	function lookup(str) {
 		if (str === '') {
@@ -198,6 +147,58 @@
 			asset_name_input.classList.remove('working');
 			asset_name_input.classList.add('succeeded');
 			form.submit();
+		});
+	}
+
+	function search(com) {
+		let prom = searchProm(com)
+		.then((id) => {
+			asset_id_input.value = (asset_id_input.value + ` asset:${id}`).trim();
+		})
+		.catch((ex) => {
+			asset_name_input.classList.remove('working');
+			asset_name_input.classList.add('failed');
+		});
+		return prom;
+	}
+
+	function searchProm(name) {
+		return new Promise((resolve, reject) => {
+			if (name === '') {
+				reject('Failed to look up asset name.');
+				return;
+			}
+
+			let query = `${window.location.origin}/Asset/Search/Results.html?Format=%27__Name__%27%2C%27__id__%27&OrderBy=Name%7C%7C%7C&Query=Name%20LIKE%20%27${name}%27&Type=Asset`;
+			let req = new XMLHttpRequest();
+			req.onload = () => {
+				if (req.readyState === 4 && req.status === 200) {
+					let id = -1;
+
+					// Parse HTML response
+					let resp = document.createElement('html');
+					resp.innerHTML = req.responseText;
+					try {
+						let table = resp.getElementsByTagName('table')[0];
+						let tbody = table.getElementsByTagName('tbody')[1];
+						let td = tbody.getElementsByTagName('td')[1];
+						id = parseInt(td.innerText);
+					} catch (ex) {}
+					
+					// Set asset id field and submit
+					if (id === -1) {
+						reject('Failed to look up asset name.');
+						return;
+					}
+					resolve(id);
+				}
+			}
+			req.onerror = () => {
+				reject(req.statusText);
+				return;
+			}
+			req.open('GET', query);
+			req.send(null);
 		});
 	}
 
@@ -272,8 +273,33 @@
 				// Create element w/ links
 				.replace(ASSET_NAME_REGEX, (match) => {
 					asset_names.push(match);
-					return `<a href="/Asset/Search/Results.html?Query=Name%20Like%20%27${match}%27" class="asset-ref">${match}</a>`;
+					return `<a class="asset-ref">${match}</a>`;
+					/*link.addEventListener('click', () => {
+						if (asset_name_input.value.trim() === '')
+							asset_name_input.value = referenced_name;
+						else
+							asset_name_input.value += ', ' + referenced_name;
+						link.classList.add('added');
+					});*/
 				}));
+			for (let child of node.parentNode.childNodes) {
+				if (child.nodeType !== NODE_TYPE_ELEM || !child.classList.contains('asset-ref'))
+					continue;
+				child.addEventListener('click', () => {
+					child.classList.add('working');
+					searchProm(child.textContent)
+					.then((id) => {
+						child.classList.remove('working');
+						child.classList.add('succeeded');
+						location.href = `/Asset/Display.html?id=${id}`;
+					})
+					.catch((ex) => {
+						console.log(ex);
+						child.classList.remove('working');
+						child.classList.add('failed');
+					});
+				});
+			}
 			span.remove();
 			node.remove();
 		} else {
