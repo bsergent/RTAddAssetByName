@@ -217,7 +217,7 @@
 			// Assumed string format: "Asset #[0-9]+: .*"
 			let asset = { id: -1, name: '' };
 			asset.id = parseInt(str_arr[0].substring(7));
-			asset.name = str_arr[1].trim();
+			asset.name = str_arr[1].trim().toUpperCase();
 			assets.push(asset);
 		}
 		return assets;
@@ -247,7 +247,7 @@
 				asset_names = [];
 			// Remove whitespace in names
 			for (let n = 0; n < asset_names.length; n++)
-				asset_names[n] = asset_names[n].replace(/\s+/g, '');
+				asset_names[n] = asset_names[n].replace(/\s+/g, '').toUpperCase();
 			return asset_names;
 		} catch (ex) {
 			console.log('Could not parse header for referenced assets', ex);
@@ -276,7 +276,7 @@
 				// Create element w/ links
 				.replace(ASSET_NAME_REGEX, (match) => {
 					match = match.replace(/\s+/g, ''); // Remove whitespace
-					asset_names.push(match);
+					asset_names.push(match.toUpperCase());
 					return `<a class="asset-ref">${match}</a>`;
 				}));
 			for (let child of node.parentNode.childNodes) {
