@@ -261,7 +261,7 @@
 	//  => include those if lowercase but all uppercase
 	// Links for ticket numbers as well?
 	//const ASSET_NAME_REGEX = /\b([A-Za-z]{2,7}[0-9]+)\b/g;
-	const ASSET_NAME_REGEX =/\b(((COM)|(LAP)|(FNET)|(COEDEAN)|(MK)|(HYDRA)|(TESLA)|(DA)|(POWERIT)) ?[0-9]+)\b/gi;
+	const ASSET_NAME_REGEX =/\b(((COM)|(LAP)|(FNET)|(COEDEAN)|(MK)|(HYDRA)|(TESLA)|(DA)|(POWERIT)|(CEPD)) ?[0-9]+)\b/gi;
 	const NODE_TYPE_TEXT = 3;
 	const NODE_TYPE_ELEM = 1;
 	function referenceAsset(node, asset_names) {
