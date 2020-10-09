@@ -190,7 +190,7 @@
 				return;
 			}
 
-			let query = `${window.location.origin}/Asset/Search/Results.html?Format=%27__Name__%27%2C%27__id__%27&OrderBy=Name%7C%7C%7C&Query=Name%20LIKE%20%27${name}%27&Type=Asset`;
+			let query = `${window.location.origin}/Asset/Search/index.html?Catalog=2&Status=&Name=${name}&%21Name=&Description=&%21Description=&Role.Owner=&%21Role.Owner=&Role.HeldBy=&%21Role.HeldBy=&Role.Contact=&%21Role.Contact=&SearchAssets=Search&CF.%7BAdministrative+Access%7D=&%21CF.%7BAdministrative+Access%7D=&CF.%7BDocuments%7D=&%21CF.%7BDocuments%7D=&CF.%7BLevel%7D=&%21CF.%7BLevel%7D=&CF.%7BFunction%7D=&%21CF.%7BFunction%7D=&CF.%7BNotes%7D=&%21CF.%7BNotes%7D=&CF.%7BSecurity+Plans%7D=&%21CF.%7BSecurity+Plans%7D=&CF.%7BAcquisition+Date%7D=&%21CF.%7BAcquisition+Date%7D=&CF.%7BWarranty+Expiration%7D=&%21CF.%7BWarranty+Expiration%7D=&CF.%7BSerial+Number%7D=&%21CF.%7BSerial+Number%7D=&CF.%7BTag+Number%7D=&%21CF.%7BTag+Number%7D=&CF.%7BTag+Type%7D=&%21CF.%7BTag+Type%7D=&CF.%7BIRIS+Asset+Number%7D=&%21CF.%7BIRIS+Asset+Number%7D=&CF.%7BMAC+Addresses%7D=&%21CF.%7BMAC+Addresses%7D=&CF.%7BVirtual+Machine%7D=&%21CF.%7BVirtual+Machine%7D=&CF.%7BLocation%7D=&%21CF.%7BLocation%7D=&CF.%7BRoom%7D=&%21CF.%7BRoom%7D=&CF.%7BRack+Number%7D=&%21CF.%7BRack+Number%7D=`;
 			let req = new XMLHttpRequest();
 			req.onload = () => {
 				if (req.readyState === 4 && req.status === 200) {
@@ -202,7 +202,7 @@
 					try {
 						let table = resp.getElementsByTagName('table')[0];
 						let tbody = table.getElementsByTagName('tbody')[1];
-						let td = tbody.getElementsByTagName('td')[1];
+						let td = tbody.getElementsByTagName('td')[0];
 						id = parseInt(td.innerText);
 					} catch (ex) {}
 					
