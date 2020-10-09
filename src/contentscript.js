@@ -14,11 +14,14 @@
 	}
 	let div_add_asset = document.getElementsByClassName('add-asset')[0];
 	let label = div_add_asset.getElementsByTagName('label')[0];
-	let inputs = div_add_asset.getElementsByTagName('input');
+	let inputs = [];
+	inputs = inputs.concat.apply(inputs, div_add_asset.getElementsByTagName('input'));
+	inputs = inputs.concat.apply(inputs, div_add_asset.getElementsByTagName('button'));
+	let asset_form_row = div_add_asset.getElementsByClassName('form-row')[0];
 	let submit_button = null;
 	let asset_id_input = null;
 	for (let i of inputs) {
-		if (i.type === 'submit' && i.value === '+')
+		if (i.type === 'submit' && i.value == 'Add')
 			submit_button = i;
 		if (i.type === 'text' && i.placeholder === 'Asset #')
 			asset_id_input = i;
@@ -46,23 +49,41 @@
 	
 	// Update html
 	// Add asset name field
+	let div_or = document.createElement('div');
+	div_or.classList.add('form-group');
+	div_or.classList.add('mx-sm-1');
+	div_or.classList.add('mb-1');
+	div_or.style.paddingTop = '6px';
+	div_or.innerHTML = ' or ';
+	asset_form_row.appendChild(div_or);
+	let asset_name_group = document.createElement('div');
+	asset_name_group.classList.add('form-group');
+	asset_name_group.classList.add('mx-sm-3');
+	asset_name_group.classList.add('mb-2');
+	asset_form_row.appendChild(asset_name_group);
 	let asset_name_input = document.createElement('input');
 	asset_name_input.size = '10';
 	asset_name_input.id = 'add-asset-by-name-input';
 	asset_name_input.placeholder = 'Asset Name';
 	asset_name_input.type = 'text';
+	asset_name_input.classList.add('form-control');
+	asset_name_input.classList.add('mb-2');
 	asset_name_input.addEventListener('keyup', event => {
 		asset_name_input.classList.remove('failed');
 		asset_name_input.classList.remove('succeeded');
 	});
-	label.appendChild(document.createTextNode(' or '));
-	label.appendChild(asset_name_input);
+	asset_name_group.appendChild(asset_name_input);
 	// Replace add-asset button
-	submit_button.style.display = 'none';
-	let btn = document.createElement('div');
-	div_add_asset.appendChild(btn);
+	let btn = document.createElement('button');
+	btn.classList.add('button');
+	btn.classList.add('btn');
+	btn.classList.add('btn-primary');
+	btn.classList.add('form-control');
+	btn.classList.add('mb-2');
 	btn.id = 'add-asset-by-name-button';
-	btn.innerHTML = '+';	
+	btn.innerHTML = 'Add';
+	submit_button.style.display = 'none';
+	asset_form_row.appendChild(btn);
 	
 	// Add empty Referenced Assets section
 	let div_ref_asset = document.createElement('div');
