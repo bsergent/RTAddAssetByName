@@ -189,6 +189,7 @@
 				reject('Failed to look up asset name.');
 				return;
 			}
+			name = name.toUpperCase();
 
 			let query = `${window.location.origin}/Asset/Search/index.html?Catalog=2&Status=&Name=${name}&%21Name=&Description=&%21Description=&Role.Owner=&%21Role.Owner=&Role.HeldBy=&%21Role.HeldBy=&Role.Contact=&%21Role.Contact=&SearchAssets=Search&CF.%7BAdministrative+Access%7D=&%21CF.%7BAdministrative+Access%7D=&CF.%7BDocuments%7D=&%21CF.%7BDocuments%7D=&CF.%7BLevel%7D=&%21CF.%7BLevel%7D=&CF.%7BFunction%7D=&%21CF.%7BFunction%7D=&CF.%7BNotes%7D=&%21CF.%7BNotes%7D=&CF.%7BSecurity+Plans%7D=&%21CF.%7BSecurity+Plans%7D=&CF.%7BAcquisition+Date%7D=&%21CF.%7BAcquisition+Date%7D=&CF.%7BWarranty+Expiration%7D=&%21CF.%7BWarranty+Expiration%7D=&CF.%7BSerial+Number%7D=&%21CF.%7BSerial+Number%7D=&CF.%7BTag+Number%7D=&%21CF.%7BTag+Number%7D=&CF.%7BTag+Type%7D=&%21CF.%7BTag+Type%7D=&CF.%7BIRIS+Asset+Number%7D=&%21CF.%7BIRIS+Asset+Number%7D=&CF.%7BMAC+Addresses%7D=&%21CF.%7BMAC+Addresses%7D=&CF.%7BVirtual+Machine%7D=&%21CF.%7BVirtual+Machine%7D=&CF.%7BLocation%7D=&%21CF.%7BLocation%7D=&CF.%7BRoom%7D=&%21CF.%7BRoom%7D=&CF.%7BRack+Number%7D=&%21CF.%7BRack+Number%7D=`;
 			let req = new XMLHttpRequest();
@@ -199,12 +200,23 @@
 					// Parse HTML response
 					let resp = document.createElement('html');
 					resp.innerHTML = req.responseText;
+					let results = []; // { id: number, name: string, dist: number }[]
 					try {
 						let table = resp.getElementsByTagName('table')[0];
-						let tbody = table.getElementsByTagName('tbody')[1];
-						let td = tbody.getElementsByTagName('td')[0];
-						id = parseInt(td.innerText);
+						let row_id, row_name;
+						for (let row of Array.from(table.getElementsByTagName('tbody')).slice(1)) {
+							row_id = parseInt(row.getElementsByTagName('td')[0].innerText);
+							row_name = row.getElementsByTagName('td')[1].innerText.toUpperCase();
+							console.log(`name: ${name}, row:  ${row_name}, dist: ${levenshteinDistance(name, row_name)}`);
+							results.push({ id: row_id, name: row_name, dist: levenshteinDistance(name, row_name) });
+						}
 					} catch (ex) {}
+
+					// Get best match for name (Levenshtein dist)
+					results.sort((a, b) => a.dist - b.dist); // Shortest dist 1st
+					if (results.length > 0)
+						id = results[0].id;
+
 					
 					// Set asset id field and submit
 					if (id === -1) {
@@ -340,5 +352,20 @@
 		event.preventDefault();
 		lookup(asset_name_input.value)
 	});
+
+	// See https://en.wikipedia.org/wiki/Levenshtein_distance
+	function levenshteinDistance(a, b) {
+		if (a.length === 0) return b.length;
+		if (b.length === 0) return a.length;
+		return Math.min(
+			levenshteinDistance(a.substr(1), b) + 1,
+			levenshteinDistance(a, b.substr(1)) + 1,
+			levenshteinDistance(a.substr(1), b.substr(1)) + (a[1] !== b[1])
+		);
+	}
+	
+
+	// Testing
+	searchProm('da1').then(resp => { console.log(resp); });
 
 })();
